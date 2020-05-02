@@ -1,0 +1,11 @@
+Library/
+Logs/
+obj/
+Packages/
+Temp/
+Assets/Material/
+Assets/Mesh/
+Assets/UI
+Assets/Prefab
+Assets/NPC
+*.meta
