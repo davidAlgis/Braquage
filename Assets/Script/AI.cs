@@ -1,7 +1,9 @@
-﻿using UnityEngine;
+﻿using System.Collections.Generic;
+using UnityEngine;
 using UnityEngine.AI;
 using Random = UnityEngine.Random;
 using UnityEngine.UI;
+
 
 public class AI : MonoBehaviour
 {
@@ -43,11 +45,8 @@ public class AI : MonoBehaviour
     private UnityEngine.AI.NavMeshAgent m_agent;
     private int m_lengthTaskVector;
     //This attributes are necessary to handle loop into the day
-    [SerializeField]
     private Task m_taskBeginLoop;
-    [SerializeField]
     private Task m_taskEndLoop;
-    [SerializeField]
     private short m_isInloop=0;
     private TimeInGame m_timeAtEndOfOneTaskLoop;
     private bool m_actionIsDown = false;
@@ -57,7 +56,14 @@ public class AI : MonoBehaviour
     #endregion
 
     #region attributes_pocket
+    [SerializeField]
     private Pocket m_myPocket;
+    #endregion
+
+
+    #region attributes_knowledge
+    [SerializeField]
+    private List<Knowledge> m_myKnowledge;
     #endregion
 
     #region attributes_task
@@ -622,8 +628,8 @@ public class Task
 [System.Serializable]
 public class Pocket
 {
-    [SerializeField]
-    private Pair<Items, bool>[] m_itemsInPocket;
+    //[SerializeField]
+    public Pair<Items, bool>[] m_itemsInPocket;
 
     public Pair<Items, bool>[] ItemsInPocket { get => m_itemsInPocket; set => m_itemsInPocket = value; }
 
@@ -645,3 +651,4 @@ public class Pocket
 
 
 }
+

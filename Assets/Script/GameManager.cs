@@ -111,6 +111,20 @@ public class GameManager : MonoBehaviour
 
     }
 
+    public Vector3 getPlayerPosition()
+    {
+        return GameObject.Find("Player").GetComponent<Transform>().position;
+    }
+
+    public GameObject getActualCamera()
+    {
+        return GameObject.Find("Player Camera");
+    }
+
+    public Vector2 getMiddleOfCamera()
+    {
+        return new Vector2(Screen.width / 2, Screen.height / 2);//Camera.main.ScreenToWorldPoint(new Vector3(Screen.width / 2, Screen.height / 2, Camera.main.nearClipPlane));
+    }
 
     #region time
     /*Manage time in game*/
