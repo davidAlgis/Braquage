@@ -11,4 +11,4 @@ Plus concrètement, il s'agit d'un jeu à la première personne dont l'ambition 
 
 **Braquage** est développé sur le moteur [Unity](https://unity.com/), et les modèles 3D sont fait avec [Blender](https://www.blender.org/). Ce git contient quelques fichiers du projet, notamment les fichiers de scene et de prefab. Mais surtout tout les scripts du projet peuvent être trouvé dans `Assets\Script`. Le git, notamment les pages du wiki, seront régulièrement mis à jour, si vous désirez voir l'avancement d'un développement de jeu indépendant, et les techniques utilisé. De plus, une build du projet sera mis à disposition, lorsque le premier prototype sera fini. 
 
-Si vous souhaitez avoir plus d'information n'hésitez pas à me contacter : david.algis@hotmail.fr
+Si vous souhaitez davantages d'informations n'hésitez pas à me contacter : david.algis@hotmail.fr
