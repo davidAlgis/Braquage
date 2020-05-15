@@ -109,16 +109,15 @@ public class UIManager : MonoBehaviour
 
     void clickOnButton()
     {
-
+        
         m_PointerEventData = new PointerEventData(m_EventSystem);
 
         m_PointerEventData.position = GameManager.Instance.getMiddleOfCamera();
 
-        
         List<RaycastResult> results = new List<RaycastResult>();
         m_Raycaster.Raycast(m_PointerEventData, results);
 
-        //For every result returned, output the name of the GameObject on the Canvas hit by the Ray
+        //send a graphic raycaster and if it hit a button then invoke the onClick function
         foreach (RaycastResult result in results)
         {
             if(result.gameObject.TryGetComponent<Button>(out Button button))

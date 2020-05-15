@@ -61,12 +61,6 @@ public class Door : MonoBehaviour
     private void Update()
     {
         m_isLock = isDoorLock();
-        if (m_AssociatedDigicodeGameObject != null)
-        {
-            if (Vector3.Distance(m_AssociatedDigicodeGameObject.transform.position, GameObject.Find("Player").transform.position) < 3)
-                Cursor.visible = true;
-            print("a");
-        }
     }
     private void OnTriggerEnter(Collider character)
     {
@@ -77,9 +71,6 @@ public class Door : MonoBehaviour
             {
                 AI aiInContact = character.GetComponent<AI>();
                 aiInContact.StopClassicalSchedule = true;
-                //Transform goal = transform;
-                //if(other.transform )
-                //aiInContact.executeAction(enumAction.WALK, transform);
                 openAndCloseDoor(character);
             }
         }
