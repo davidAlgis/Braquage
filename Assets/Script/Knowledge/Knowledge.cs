@@ -4,17 +4,9 @@ using UnityEngine;
 
 public abstract class Knowledge : MonoBehaviour
 {
+    [SerializeField]
+    private string m_name;
 
-
+    public string Name { get => m_name; set => m_name = value; }
 }
 
-
-public class Password : Knowledge
-{
-    [SerializeField]
-    private GameObject m_elementAssociated;
-
-    [SerializeField]
-    private string m_password;
-
-}

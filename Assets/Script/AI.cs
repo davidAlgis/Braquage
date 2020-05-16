@@ -57,13 +57,15 @@ public class AI : MonoBehaviour
 
     #region attributes_pocket
     [SerializeField]
-    private Pocket m_myPocket;
+    private List<GameObject> m_inventoryGO;
+    private List<Pair<Items, bool>> m_inventory = new List<Pair<Items, bool>>();
     #endregion
 
 
     #region attributes_knowledge
     [SerializeField]
-    private List<Knowledge> m_myKnowledge;
+    private List<GameObject> m_knowledgeGO;
+    private List<Knowledge> m_knowledge = new List<Knowledge>();
     #endregion
 
     #region attributes_task
@@ -79,8 +81,11 @@ public class AI : MonoBehaviour
 
     void Start()
     {
-        m_lengthTaskVector = m_taskVector.Length;
+        checkAndSetKnowledge();
+        checkAndSetInventory();
 
+        m_lengthTaskVector = m_taskVector.Length;
+        print(knowledgeToString());
 
         if (m_autoSetRoute)
             setRoute();
@@ -122,9 +127,13 @@ public class AI : MonoBehaviour
         }
         m_saveSecondToLastTransform = GameObject.Find("Game").GetComponent<Transform>();
         m_saveLastTransform = GameObject.Find("Player").GetComponent<Transform>();
+
         
+
         if (!checkCoherencyTaskVector())
-            Debug.LogError("Task aren't well defined, there might be incoherencies");
+            Debug.LogWarning("Task aren't well defined, there might be incoherencies");
+
+        
     }
 
     void Update()
@@ -263,6 +272,39 @@ public class AI : MonoBehaviour
         return true;
     }
 
+    public void checkAndSetInventory()
+    {
+        //all the gameobjects in the list must have a daughter of the Items class
+        if (m_inventoryGO != null)
+        {
+            foreach (GameObject itemGO in m_inventoryGO)
+            {
+                if (itemGO.TryGetComponent(out Items item))
+                {
+                    Pair<Items, bool> itemHave =new Pair<Items,bool>(item, true);
+                    m_inventory.Add(itemHave);
+                }
+                else
+                    Debug.LogWarning("In Knowledge there is an invalid gameobject which dont have any Knowledge script attached");
+            }
+        }
+    }
+
+    public void checkAndSetKnowledge()
+    {
+        //all the gameobjects in the list must have a daughter of the Knowledge class
+        if (m_knowledgeGO != null)
+        {
+            foreach (GameObject knowledgeGO in m_knowledgeGO)
+            {
+                if (knowledgeGO.TryGetComponent(out Knowledge knowledge))
+                    m_knowledge.Add(knowledge);
+                else
+                    Debug.LogWarning("In Knowledge there is an invalid gameobject which dont have any Knowledge script attached");
+            }
+        }
+    }
+
     public void setTask()
     {
         m_lengthTaskVector = m_taskVector.Length;
@@ -357,7 +399,6 @@ public class AI : MonoBehaviour
         }
         else
         {
-            //print("Entering the loop ");
             //#################     check end loop     ##############
             //case to end the loop if the end task of the loop is not the last task
             if (m_taskEndLoop != m_taskVector[m_lengthTaskVector -1])
@@ -586,6 +627,45 @@ public class AI : MonoBehaviour
 
         return true;
     }
+
+    public string inventoryToString()
+    {
+        string itemsInInventoryStr = "";
+        if (m_inventory != null)
+        {
+            Debug.Log(gameObject.name + " inventory contains :\n");
+            foreach (Pair<Items, bool> itemsHave in m_inventory)
+            {
+                Debug.Log("Name : " + itemsHave.first.Name + ", id :" + itemsHave.first.Id + ", Is in pocket : " + itemsHave.second.ToString() + "\n");
+            }
+                
+        }
+        else
+        {
+            itemsInInventoryStr += "Inventory is empty\n";
+        }
+        return itemsInInventoryStr;
+    }
+
+    public string knowledgeToString()
+    {
+        string knowledgeString = "";
+        if (m_knowledge != null)
+        {
+            Debug.Log(gameObject.name + " know :\n");
+            foreach (Knowledge knowledge in m_knowledge)
+            {
+                Debug.Log(knowledge.Name + "\n");
+            }
+
+        }
+        else
+        {
+            knowledgeString += "Doesnt have any knowledge\n";
+        }
+        return knowledgeString;
+    }
+    
 }
 
 
@@ -624,31 +704,3 @@ public class Task
         return true;
     }
 }
-
-[System.Serializable]
-public class Pocket
-{
-    //[SerializeField]
-    public Pair<Items, bool>[] m_itemsInPocket;
-
-    public Pair<Items, bool>[] ItemsInPocket { get => m_itemsInPocket; set => m_itemsInPocket = value; }
-
-    public override string ToString()
-    {
-        string itemsInPocketStr =  "";
-        if (m_itemsInPocket != null)
-        {
-            Debug.Log("Pocket contains :\n");
-            foreach (Pair<Items, bool> itemsHave in m_itemsInPocket)
-                Debug.Log("Name : " + itemsHave.first.Name + ", id :" + itemsHave.first.Id + ", Is in pocket : " + itemsHave.second.ToString() + "\n");
-        }
-        else
-        {
-            itemsInPocketStr += "Pocket is empty\n";
-        }
-        return itemsInPocketStr;
-    }
-
-
-}
-

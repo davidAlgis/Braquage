@@ -63,7 +63,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Assets\Ultimate Game Tools\ConcaveCollider\Editor\ConcaveColliderEditor.cs" />
+    <Compile Include="Assets\Script\Editor\TaskEditor.cs" />
     <Reference Include="UnityEditor.TestRunner">
       <HintPath>B:/Informatique/Heist/Heist Project/Library/ScriptAssemblies/UnityEditor.TestRunner.dll</HintPath>
     </Reference>

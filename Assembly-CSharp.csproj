@@ -71,12 +71,14 @@
     <Compile Include="Assets\Script\Digicode.cs" />
     <Compile Include="Assets\Script\DoNotDestroyOnLoad.cs" />
     <Compile Include="Assets\Script\Door.cs" />
+    <Compile Include="Assets\Script\EditorExecution.cs" />
     <Compile Include="Assets\Script\EnterViewFieldAI.cs" />
     <Compile Include="Assets\Script\Event.cs" />
     <Compile Include="Assets\Script\FirstPersonAIO.cs" />
     <Compile Include="Assets\Script\GameManager.cs" />
-    <Compile Include="Assets\Script\Items.cs" />
-    <Compile Include="Assets\Script\Knowledge.cs" />
+    <Compile Include="Assets\Script\Items\Items.cs" />
+    <Compile Include="Assets\Script\Knowledge\Knowledge.cs" />
+    <Compile Include="Assets\Script\Knowledge\Password.cs" />
     <Compile Include="Assets\Script\TimeInGame.cs" />
     <Compile Include="Assets\Script\UIManager.cs" />
     <Compile Include="Assets\Script\Utilities.cs" />
