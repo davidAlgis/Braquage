@@ -57,6 +57,7 @@ public class FirstPersonAIO : MonoBehaviour {
 
     #region Variables
 
+
     #region Input Settings
 
     #endregion
@@ -139,6 +140,7 @@ public class FirstPersonAIO : MonoBehaviour {
     private CapsuleCollider capsule;
     private const float jumpRayLength = 0.7f;
     public bool IsGrounded { get; private set; }
+  
     Vector2 inputXY;
     public bool isCrouching;
     bool isSprinting = false;
@@ -220,7 +222,7 @@ public class BETA_SETTINGS{
     [Space(5)]
     public BETA_SETTINGS betaSettings = new BETA_SETTINGS();
      */
-    
+
     #endregion
 
     #endregion
@@ -319,28 +321,30 @@ public class BETA_SETTINGS{
         fOVKick.fovStart = playerCamera.fieldOfView;
         #endregion
     }
+    
 
     private void Update()
     {
         #region Look Settings - Update
 
-            if(enableCameraMovement){
+        if (enableCameraMovement)
+        {
             float mouseXInput;
             float mouseYInput;
             float camFOV = playerCamera.fieldOfView;
             mouseXInput = Input.GetAxis("Mouse Y");
             mouseYInput = Input.GetAxis("Mouse X");
-            if(targetAngles.y > 180) { targetAngles.y -= 360; followAngles.y -= 360; } else if(targetAngles.y < -180) { targetAngles.y += 360; followAngles.y += 360; }
-            if(targetAngles.x > 180) { targetAngles.x -= 360; followAngles.x -= 360; } else if(targetAngles.x < -180) { targetAngles.x += 360; followAngles.x += 360; }
-            targetAngles.y += mouseYInput * (mouseSensitivityInternal - ((baseCamFOV-camFOV)*fOVToMouseSensitivity)/6f);
-            targetAngles.x += mouseXInput * (mouseSensitivityInternal - ((baseCamFOV-camFOV)*fOVToMouseSensitivity)/6f);
+            if (targetAngles.y > 180) { targetAngles.y -= 360; followAngles.y -= 360; } else if (targetAngles.y < -180) { targetAngles.y += 360; followAngles.y += 360; }
+            if (targetAngles.x > 180) { targetAngles.x -= 360; followAngles.x -= 360; } else if (targetAngles.x < -180) { targetAngles.x += 360; followAngles.x += 360; }
+            targetAngles.y += mouseYInput * (mouseSensitivityInternal - ((baseCamFOV - camFOV) * fOVToMouseSensitivity) / 6f);
+            targetAngles.x += mouseXInput * (mouseSensitivityInternal - ((baseCamFOV - camFOV) * fOVToMouseSensitivity) / 6f);
             targetAngles.y = Mathf.Clamp(targetAngles.y, -0.5f * Mathf.Infinity, 0.5f * Mathf.Infinity);
             targetAngles.x = Mathf.Clamp(targetAngles.x, -0.5f * verticalRotationRange, 0.5f * verticalRotationRange);
-            followAngles = Vector3.SmoothDamp(followAngles, targetAngles, ref followVelocity, (cameraSmoothing)/100);
-            playerCamera.transform.localRotation = Quaternion.Euler(-followAngles.x + originalRotation.x,0,0);
-            transform.localRotation =  Quaternion.Euler(0, followAngles.y+originalRotation.y, 0);
+            followAngles = Vector3.SmoothDamp(followAngles, targetAngles, ref followVelocity, (cameraSmoothing) / 100);
+            playerCamera.transform.localRotation = Quaternion.Euler(-followAngles.x + originalRotation.x, 0, 0);
+            transform.localRotation = Quaternion.Euler(0, followAngles.y + originalRotation.y, 0);
         }
-    
+
         #endregion
 
         #region Movement Settings - Update
@@ -354,6 +358,7 @@ public class BETA_SETTINGS{
         #region BETA_SETTINGS - Update
 
         #endregion
+        
     }
 
     private void FixedUpdate()

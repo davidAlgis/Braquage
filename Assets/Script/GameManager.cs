@@ -82,6 +82,22 @@ public class GameManager : MonoBehaviour
         updateSunMoon();
     }
 
+    //enable or disable player movement and camera movement and return the last position of camera
+    public Transform enableDisablePlayerCameraMovement(bool enable)
+    {
+
+        if (getActualPlayerGO().TryGetComponent(out FirstPersonAIO player))
+        {
+            player.enableCameraMovement = enable;
+            player.playerCanMove = enable;
+        }
+        else
+            Debug.LogWarning("Unable to find the script FirstPersonAIO componement in Player");
+        
+
+        return getActualCamera().transform;
+    }
+
     public void updateSunMoon()
     {
         GameObject Astre = GameObject.Find("Astre");
@@ -111,14 +127,30 @@ public class GameManager : MonoBehaviour
 
     }
 
-    public Vector3 getPlayerPosition()
+    public GameObject getActualPlayerGO()
     {
-        return GameObject.Find("Player").GetComponent<Transform>().position;
+        return GameObject.Find("Player");
     }
 
-    public GameObject getActualCamera()
+    public Vector3 getPlayerPosition()
+    {
+        return getActualPlayerGO().GetComponent<Transform>().position;
+    }
+
+    public GameObject getActualCameraGO()
     {
         return GameObject.Find("Player Camera");
+    }
+
+    public Camera getActualCamera()
+    {
+        if(getActualCameraGO().TryGetComponent(out Camera actualCamera))
+            return actualCamera;
+        else
+        {
+            Debug.LogWarning("Can't find any actual camera");
+            return null;
+        }
     }
 
     public Vector2 getMiddleOfCamera()

@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class AILook : MonoBehaviour
+public class NPCLook : MonoBehaviour
 {
     void Update()
     {

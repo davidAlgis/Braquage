@@ -16,7 +16,7 @@ public class EnterViewFieldAI : MonoBehaviour
 
             if (Physics.Raycast(fromPosition, direction, out hit))
             {
-                GetComponentInParent<AI>().EnterInDetectionZone = Time.time;
+                GetComponentInParent<NPC>().EnterInDetectionZone = Time.time;
             }
         }
     }
@@ -38,7 +38,7 @@ public class EnterViewFieldAI : MonoBehaviour
                 if(hit.collider.gameObject.name=="Player")
                 {
                     print("collide2");
-                    GetComponentInParent<AI>().SecondInDetectionZone = Time.time - GetComponentInParent<AI>().EnterInDetectionZone;
+                    GetComponentInParent<NPC>().SecondInDetectionZone = Time.time - GetComponentInParent<NPC>().EnterInDetectionZone;
                 }
             }
         }
@@ -59,7 +59,7 @@ public class EnterViewFieldAI : MonoBehaviour
 
                 if (hit.collider.gameObject.name == "Player")
                 {
-                    GetComponentInParent<AI>().ExitInDetectionZone = Time.time;
+                    GetComponentInParent<NPC>().ExitInDetectionZone = Time.time;
                 }
             }
         }

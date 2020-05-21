@@ -22,19 +22,21 @@ public class Door : MonoBehaviour
     [Header("Digicode")]
 
     [SerializeField]
-    private GameObject m_AssociatedDigicodeGameObject;
+    private GameObject m_associatedDigicodeGameObject;
     [SerializeField]
     private string m_password;
 
     private Text m_textOnScreen;
+
+    public bool IsOpen { get => m_isOpen; set => m_isOpen = value; }
     #endregion
 
     private void Start()
     {
         //If there is a digicode associated
-        if (m_AssociatedDigicodeGameObject != null)
+        if (m_associatedDigicodeGameObject != null)
         {
-            if (parametrizedDigicode() == false)
+            if (initDigicode() == false)
             {
                 Debug.LogWarning("The Digicode couldn't be set properly, therefore the state of the door " + gameObject.name + " has been set to unlock.");
                 m_isLock = false;
@@ -65,15 +67,8 @@ public class Door : MonoBehaviour
     private void OnTriggerEnter(Collider character)
     {
         if (character.tag == "NPC")
-        {
-
             if (m_isOpen == false)
-            {
-                AI aiInContact = character.GetComponent<AI>();
-                aiInContact.StopClassicalSchedule = true;
-                openAndCloseDoor(character);
-            }
-        }
+                character.GetComponent<NPC>().tryToOpenTheDoor(this);
 
         if (character.tag == "Player")
             UIManager.Instance.enableUIPressButton(true, "F");
@@ -87,7 +82,7 @@ public class Door : MonoBehaviour
             if (Input.GetKeyDown(KeyCode.F))
             {
 
-                openAndCloseDoor(character);
+                tryToOpenOrCloseDoor();
                 UIManager.Instance.enableUIPressButton(false);
             }
         }
@@ -99,31 +94,26 @@ public class Door : MonoBehaviour
             UIManager.Instance.enableUIPressButton(false);
 
         if (character.tag == "NPC")
-        {
-            openAndCloseDoor(character);
-        }
+            character.GetComponent<NPC>().tryToCloseTheDoor(this);
     }
 
-    void openAndCloseDoor(Collider character)
+    public bool tryToOpenOrCloseDoor()
     {
-        print("open and close the door" + m_isLock);
         if (m_isLock)
-        {
-
-            UIManager.Instance.enableMessageBox("La porte est fermée à clé.");
-        }
+            return false;
+                //UIManager.Instance.enableMessageBox("La porte est fermée à clé.");
         else
         {
             m_actualRotation = transform.localRotation.eulerAngles.z;
             if (m_isOpen)
-                StartCoroutine(rotateTo(m_initialRotation, character));
+                StartCoroutine(rotateTo(m_initialRotation));
             else
-                StartCoroutine(rotateTo(m_rotation, character));
+                StartCoroutine(rotateTo(m_rotation));
+            return true;
         }
-
     }
 
-    IEnumerator rotateTo(float breakRotation, Collider character)
+    IEnumerator rotateTo(float breakRotation)
     {
         //speed of rotation of the door
         float frequencyOfLoop = 0.0001f;
@@ -148,11 +138,6 @@ public class Door : MonoBehaviour
                 yield return new WaitForSeconds(frequencyOfLoop);
             }
             m_isOpen = true;
-            if (character.tag == "NPC")
-            {
-                if (m_isOpen == true)
-                    character.GetComponent<AI>().StopClassicalSchedule = false;
-            }
         }
         else
         {
@@ -201,14 +186,21 @@ public class Door : MonoBehaviour
     }
 
     #region digicode
-    public bool parametrizedDigicode()
+    public bool initDigicode()
     {
+        //init m_textComponement
+        GameObject textOnScreenGO;
+        if ((textOnScreenGO = m_associatedDigicodeGameObject.transform.Find("Canvas_screen_digicode/TextDigicode").gameObject) == null)
+        {
+            Debug.LogError("unable to find any gameobject of the name " + "Canvas_screen_digicode/TextDigicode" + " in " + m_associatedDigicodeGameObject.name);
+            return false;
+        }
 
-        if (m_AssociatedDigicodeGameObject.transform.Find("Canvas_screen_digicode/TextDigicode"))
-            m_textOnScreen = m_AssociatedDigicodeGameObject.transform.Find("Canvas_screen_digicode/TextDigicode").GetComponent<Text>();
+        if (textOnScreenGO.TryGetComponent(out Text textTemp))
+            m_textOnScreen = textTemp;
         else
         {
-            Debug.LogWarning("A digicode was given with the door " + gameObject.name + " , but the TextDigicode UI was not found.");
+            Debug.LogError("unable to find any text componement in " + textOnScreenGO.name);
             return false;
         }
 
@@ -216,35 +208,47 @@ public class Door : MonoBehaviour
         for (int i = 0; i < 10; i++)
         {
             string buttonName = "Canvas_screen_digicode/Button_digi_" + i.ToString();
-            if (m_AssociatedDigicodeGameObject.transform.Find(buttonName))
-                buttonsDigicode.Add(m_AssociatedDigicodeGameObject.transform.Find(buttonName).GetComponent<Button>());
-            else
+
+            GameObject buttonGO;
+            if ((buttonGO = m_associatedDigicodeGameObject.transform.Find(buttonName).gameObject) == null)
             {
-                Debug.LogWarning("A digicode was given with the door " + gameObject.name + " , but the button_digi_" + i.ToString() + "UI was not found.");
+                Debug.LogError("unable to find any gameobject of the name " + buttonName + " in " + m_associatedDigicodeGameObject.name);
                 return false;
             }
+
+            if (buttonGO.TryGetComponent(out Button buttonToAdd))
+                buttonsDigicode.Add(buttonToAdd);
+            else
+            {
+                Debug.LogError("unable to find any text componement in " + buttonGO.name);
+                return false;
+            }
+
+            string tempStrToLambda = i.ToString();
+            //when we use lambda function we need to use a temporary variable in the loop because of https://stackoverflow.com/questions/271440/captured-variable-in-a-loop-in-c-sharp
+            //https://csharpindepth.com/Articles/Closures
+            (buttonsDigicode[i]).onClick.AddListener(delegate () { this.printStringOnScreen(tempStrToLambda); });
         }
 
 
-        //the addListener have to be set one by one
-        (buttonsDigicode[0]).onClick.AddListener(delegate () { this.printStringOnScreen("0"); });
-        (buttonsDigicode[1]).onClick.AddListener(delegate () { this.printStringOnScreen("1"); });
-        (buttonsDigicode[2]).onClick.AddListener(delegate () { this.printStringOnScreen("2"); });
-        (buttonsDigicode[3]).onClick.AddListener(delegate () { this.printStringOnScreen("3"); });
-        (buttonsDigicode[4]).onClick.AddListener(delegate () { this.printStringOnScreen("4"); });
-        (buttonsDigicode[5]).onClick.AddListener(delegate () { this.printStringOnScreen("5"); });
-        (buttonsDigicode[6]).onClick.AddListener(delegate () { this.printStringOnScreen("6"); });
-        (buttonsDigicode[7]).onClick.AddListener(delegate () { this.printStringOnScreen("7"); });
-        (buttonsDigicode[8]).onClick.AddListener(delegate () { this.printStringOnScreen("8"); });
-        (buttonsDigicode[9]).onClick.AddListener(delegate () { this.printStringOnScreen("9"); });
+        GameObject buttonReturnGO;
+        if ((buttonReturnGO = m_associatedDigicodeGameObject.transform.Find("Canvas_screen_digicode/Button_digi_return").gameObject) == null)
+        {
+            Debug.LogError("unable to find any gameobject of the name " + "Canvas_screen_digicode/Button_digi_return" + " in " + m_associatedDigicodeGameObject.name);
+            return false;
+        }
 
-
-        Button buttonReturn = m_AssociatedDigicodeGameObject.transform.Find("Canvas_screen_digicode/Button_digi_return").GetComponent<Button>();
-        buttonReturn.onClick.AddListener(delegate () { this.returnTextOnScreen(); });
+        if (buttonReturnGO.TryGetComponent(out Button buttonReturn))
+            buttonReturn.onClick.AddListener(delegate () { this.deleteCharacterOnScreen(); });
+        else
+        {
+            Debug.LogError("unable to find any text componement in " + buttonReturnGO.name);
+            return false;
+        }
         return true;
     }
 
-    public void returnTextOnScreen()
+    public void deleteCharacterOnScreen()
     {
         if(m_textOnScreen.text.Length > 0)
             m_textOnScreen.text = m_textOnScreen.text.Substring(0, m_textOnScreen.text.Length - 1);
@@ -257,7 +261,7 @@ public class Door : MonoBehaviour
             m_textOnScreen.text += strToPrint;
         else
             m_textOnScreen.text = "";
-        if (isPasswordCorrect())
+        if (isPasswordCorrect(m_textOnScreen.text))
         {
             m_isLock = false;
             m_textOnScreen.text = "";
@@ -266,14 +270,26 @@ public class Door : MonoBehaviour
 
     }
 
-    public bool isPasswordCorrect()
+    public bool tryPassword(string passwordToTest)
     {
-        return m_textOnScreen.text == m_password;
+        if (isPasswordCorrect(passwordToTest))
+        {
+            m_isLock = false;
+            return true;
+        }
+        else
+            return false;
+    }
+
+    public bool isPasswordCorrect(string passwordToTest)
+    {
+        return passwordToTest == m_password;
     }
     #endregion
+
 }
 
-//I don't use struct, because we don't see it in inspectector then.
+//I don't use struct, because we don't see it in inspector then.
 [System.Serializable]
 public class SlotTime
 {

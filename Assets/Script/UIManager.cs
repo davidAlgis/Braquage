@@ -36,6 +36,16 @@ public class UIManager : MonoBehaviour
         m_EventSystem = GetComponent<EventSystem>();
 
     }
+
+    void Update()
+    {
+        transform.Find("TextTime").GetComponent<Text>().text = GameManager.Instance.CurrentTimeInGame.ToString();
+
+        if (Input.GetMouseButtonDown(0))
+            if (isNearWorldCanvas())
+                clickOnButton();
+    }
+
     public static UIManager Instance
     {
         get
@@ -79,18 +89,7 @@ public class UIManager : MonoBehaviour
         transform.Find("GameOver").GetComponent<Text>().text = "Game Over";
     }
 
-    // Update is called once per frame
-    void Update()
-    {
-        transform.Find("TextTime").GetComponent<Text>().text = GameManager.Instance.CurrentTimeInGame.ToString();
-
-        if (Input.GetMouseButtonDown(0))
-            if (isNearWorldCanvas())
-                clickOnButton();
-    }
-
-
-    bool isNearWorldCanvas()
+    public bool isNearWorldCanvas()
     {
         
         if (m_canvasWorldGameObject != null)
@@ -106,6 +105,38 @@ public class UIManager : MonoBehaviour
         return false;
     }
 
+    public void enableDisableMouse(bool enable)
+    {
+        if (GameManager.Instance.getActualPlayerGO().TryGetComponent(out FirstPersonAIO player))
+        {
+            //you need to first disable cursor before disabling enableCameraMovement
+            if(player.enableCameraMovement == false)
+            {
+                Debug.LogWarning("You try to enable cursor, but you need to do that before turning false the enableCameraMovement attributes ");
+                //turn the enableCameraMovement on
+                player.enableCameraMovement = true;
+
+                //enable or disable cursor
+                player.lockAndHideCursor = !enable;
+                Cursor.visible = enable;
+                if (enable)
+                    Cursor.lockState = CursorLockMode.None;
+                else
+                    Cursor.lockState = CursorLockMode.Confined;
+
+                //return the enableCameraMovement off
+                player.enableCameraMovement = false;
+                return;
+            }
+                
+            player.lockAndHideCursor = !enable;
+            if(enable)
+                Cursor.lockState = CursorLockMode.None;
+            else
+                Cursor.lockState = CursorLockMode.Confined;
+            Cursor.visible = enable;
+        }
+    }
 
     void clickOnButton()
     {

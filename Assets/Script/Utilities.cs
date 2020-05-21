@@ -44,6 +44,13 @@ public class Utilities : MonoBehaviour
         return afterRotation + pointA;
     }
 
+    public static void instantiateSphereAtPosition(Vector3 position)
+    {
+        GameObject Sphere = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+        Sphere.transform.localScale /= 10;
+        Instantiate(Sphere, position, Quaternion.identity);
+    }
+
 }
 
 

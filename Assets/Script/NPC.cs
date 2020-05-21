@@ -1,11 +1,11 @@
 ﻿using System.Collections.Generic;
+using System.Collections;
 using UnityEngine;
-using UnityEngine.AI;
 using Random = UnityEngine.Random;
 using UnityEngine.UI;
 
 
-public class AI : MonoBehaviour
+public class NPC : MonoBehaviour
 {
     #region attributes_stealth
 
@@ -69,6 +69,7 @@ public class AI : MonoBehaviour
     #endregion
 
     #region attributes_task
+    [SerializeField]
     private bool m_stopClassicalSchedule = false;
     #endregion
 
@@ -85,7 +86,6 @@ public class AI : MonoBehaviour
         checkAndSetInventory();
 
         m_lengthTaskVector = m_taskVector.Length;
-        print(knowledgeToString());
 
         if (m_autoSetRoute)
             setRoute();
@@ -657,7 +657,6 @@ public class AI : MonoBehaviour
             {
                 Debug.Log(knowledge.Name + "\n");
             }
-
         }
         else
         {
@@ -666,6 +665,49 @@ public class AI : MonoBehaviour
         return knowledgeString;
     }
     
+    public void tryToOpenTheDoor(Door door)
+    {  
+        if(door.IsOpen == false)
+        {
+            StopClassicalSchedule = true;
+            if (door.tryToOpenOrCloseDoor())
+                StartCoroutine(waitDoorOpen(door));
+            //if the door is lock
+            else
+            {
+                if (m_knowledge != null)
+                    foreach (Knowledge knowledge in m_knowledge)
+                        if (knowledge is Password)
+                        {
+                            Password password = (Password)knowledge;
+                            if (door.tryPassword(password.getPassword))
+                                if (door.tryToOpenOrCloseDoor())
+                                    StartCoroutine(waitDoorOpen(door));
+                        }
+                if (m_inventory != null)
+                    foreach (Pair<Items,bool> item in m_inventory)
+                        if (item.first is Key && item.second)
+                        {
+                            Key key = (Key)item.first;
+                            if (key.DoorAssociated == door)
+                                if (door.tryToOpenOrCloseDoor())
+                                    StartCoroutine(waitDoorOpen(door));
+                        }
+            }
+        }
+    }
+
+    public void tryToCloseTheDoor(Door door)
+    {
+        door.tryToOpenOrCloseDoor();
+    }
+
+    private IEnumerator waitDoorOpen(Door door)
+    {
+        while (door.IsOpen == false)
+            yield return new WaitForSeconds(0.1f);
+        StopClassicalSchedule = false;
+    }
 }
 
 

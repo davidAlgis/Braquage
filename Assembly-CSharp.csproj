@@ -65,20 +65,20 @@
   <ItemGroup>
     <Compile Include="Assets\NPC\CivilCharactersPack\Scripts\CharacterCustomization.cs" />
     <Compile Include="Assets\NPC\CivilCharactersPack\Scripts\UIControllerDEMO.cs" />
-    <Compile Include="Assets\Script\AI.cs" />
-    <Compile Include="Assets\Script\AILook.cs" />
+    <Compile Include="Assets\Script\Computer.cs" />
     <Compile Include="Assets\Script\DebugTool.cs" />
-    <Compile Include="Assets\Script\Digicode.cs" />
     <Compile Include="Assets\Script\DoNotDestroyOnLoad.cs" />
     <Compile Include="Assets\Script\Door.cs" />
-    <Compile Include="Assets\Script\EditorExecution.cs" />
     <Compile Include="Assets\Script\EnterViewFieldAI.cs" />
     <Compile Include="Assets\Script\Event.cs" />
     <Compile Include="Assets\Script\FirstPersonAIO.cs" />
     <Compile Include="Assets\Script\GameManager.cs" />
     <Compile Include="Assets\Script\Items\Items.cs" />
+    <Compile Include="Assets\Script\Items\Key.cs" />
     <Compile Include="Assets\Script\Knowledge\Knowledge.cs" />
     <Compile Include="Assets\Script\Knowledge\Password.cs" />
+    <Compile Include="Assets\Script\NPC.cs" />
+    <Compile Include="Assets\Script\NPCLook.cs" />
     <Compile Include="Assets\Script\TimeInGame.cs" />
     <Compile Include="Assets\Script\UIManager.cs" />
     <Compile Include="Assets\Script\Utilities.cs" />
