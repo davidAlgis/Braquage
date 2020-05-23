@@ -74,7 +74,7 @@ public class TimeInGame
         if (day < 0)
         {
             day = 0;
-            DebugTool.printError("Obtain negativ day when substracting time:" + time1.ToString() + " and " + time2.ToString());
+            Debug.LogError("Obtain negativ day when substracting time:" + time1.ToString() + " and " + time2.ToString());
         }
         return lessTime = new TimeInGame(day,hours,minutes);
     }
@@ -248,9 +248,9 @@ public class TimeInGame
         int hours;
         float minutes;
         if (!int.TryParse(hoursAndMinuteStr[0], out hours))
-            DebugTool.printError("Unable to convert string" + hoursAndMinuteStr[0] + "to int");
+            Debug.LogError("Unable to convert string" + hoursAndMinuteStr[0] + "to int");
         if (!float.TryParse(hoursAndMinuteStr[1], out minutes))
-            DebugTool.printError("Unable to convert string" + hoursAndMinuteStr[1] + "to float");
+            Debug.LogError("Unable to convert string" + hoursAndMinuteStr[1] + "to float");
         TimeInGame timeConverted = new TimeInGame(day, hours, minutes);
         return timeConverted;
     }

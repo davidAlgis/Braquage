@@ -22,7 +22,7 @@ public class Door : MonoBehaviour
     [Header("Digicode")]
 
     [SerializeField]
-    private GameObject m_associatedDigicodeGameObject;
+    private GameObject m_associatedDigicodeGO;
     [SerializeField]
     private string m_password;
 
@@ -34,7 +34,7 @@ public class Door : MonoBehaviour
     private void Start()
     {
         //If there is a digicode associated
-        if (m_associatedDigicodeGameObject != null)
+        if (m_associatedDigicodeGO != null)
         {
             if (initDigicode() == false)
             {
@@ -190,11 +190,9 @@ public class Door : MonoBehaviour
     {
         //init m_textComponement
         GameObject textOnScreenGO;
-        if ((textOnScreenGO = m_associatedDigicodeGameObject.transform.Find("Canvas_screen_digicode/TextDigicode").gameObject) == null)
-        {
-            Debug.LogError("unable to find any gameobject of the name " + "Canvas_screen_digicode/TextDigicode" + " in " + m_associatedDigicodeGameObject.name);
+
+        if (DebugTool.tryFindGOChildren(m_associatedDigicodeGO, "Canvas_screen_digicode/TextDigicode", out textOnScreenGO, LogType.Error) == false)
             return false;
-        }
 
         if (textOnScreenGO.TryGetComponent(out Text textTemp))
             m_textOnScreen = textTemp;
@@ -210,11 +208,8 @@ public class Door : MonoBehaviour
             string buttonName = "Canvas_screen_digicode/Button_digi_" + i.ToString();
 
             GameObject buttonGO;
-            if ((buttonGO = m_associatedDigicodeGameObject.transform.Find(buttonName).gameObject) == null)
-            {
-                Debug.LogError("unable to find any gameobject of the name " + buttonName + " in " + m_associatedDigicodeGameObject.name);
+            if (DebugTool.tryFindGOChildren(m_associatedDigicodeGO, buttonName, out buttonGO, LogType.Error) == false)
                 return false;
-            }
 
             if (buttonGO.TryGetComponent(out Button buttonToAdd))
                 buttonsDigicode.Add(buttonToAdd);
@@ -232,11 +227,8 @@ public class Door : MonoBehaviour
 
 
         GameObject buttonReturnGO;
-        if ((buttonReturnGO = m_associatedDigicodeGameObject.transform.Find("Canvas_screen_digicode/Button_digi_return").gameObject) == null)
-        {
-            Debug.LogError("unable to find any gameobject of the name " + "Canvas_screen_digicode/Button_digi_return" + " in " + m_associatedDigicodeGameObject.name);
+        if(DebugTool.tryFindGOChildren(m_associatedDigicodeGO, "Canvas_screen_digicode/Button_digi_return",out buttonReturnGO, LogType.Error) == false)
             return false;
-        }
 
         if (buttonReturnGO.TryGetComponent(out Button buttonReturn))
             buttonReturn.onClick.AddListener(delegate () { this.deleteCharacterOnScreen(); });

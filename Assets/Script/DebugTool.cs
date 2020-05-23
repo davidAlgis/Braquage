@@ -1,26 +1,50 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System;
 
 public static class DebugTool
 {
+    //TODO: to replace by Debug.LogError 
     public static bool printError(string message,string gameObjectName="",string componementName="")
     {
         Debug.Log("Error - " +componementName + "/" + gameObjectName + " - " + message);
         return false;
     }
 
-    public static bool HasComponent<T>(this GameObject flag) where T : Component
+
+    //check if a gameobject have the GONameToFind in this children
+    public static bool tryFindGOChildren(GameObject GOParent, string GONameToFind, out GameObject GOToReturn, LogType debugType = LogType.Warning)
     {
-        if (flag.GetComponent<T>() != null)
-            return true;
-        else
+        GOToReturn = GOParent.transform.gameObject;
+        try
         {
-            printError(flag.name + "doesn't have a componement which is called");
+            GOToReturn = GOParent.transform.Find(GONameToFind).gameObject;
+            
+        }
+        catch (NullReferenceException)
+        {
+            switch(debugType)
+            {
+                case (LogType.Log):
+                    Debug.Log("Unable to find " + GONameToFind + " in " + GOParent.gameObject.name);
+                    break;
+                case (LogType.Warning):
+                    Debug.LogWarning("Unable to find " + GONameToFind + " in " + GOParent.gameObject.name);
+                    break;
+                case (LogType.Error):
+                    Debug.LogError("Unable to find " + GONameToFind + " in " + GOParent.gameObject.name);
+                    break;
+                default:
+                    Debug.LogWarning("LogType undefined " + debugType);
+                    Debug.LogWarning("Unable to find " + GONameToFind + " in " + GOParent.gameObject.name);
+                    break;
+            }
             return false;
         }
+        return true;
     }
 
 
-
 }
+

@@ -529,7 +529,11 @@ public class NPC : MonoBehaviour
         Vector3 vecAiToPlayer = playerPosition - positionAI;
         Vector2 vecAiToPlayer2D = new Vector2(vecAiToPlayer.x, vecAiToPlayer.z);
 
-        Vector3 vecInFrontOfEye = transform.Find("FrontPoint").position - positionAI;
+        GameObject frontPointGO;
+        if (DebugTool.tryFindGOChildren(gameObject, "FrontPoint", out frontPointGO, LogType.Warning) == false)
+            return false;
+
+        Vector3 vecInFrontOfEye = frontPointGO.transform.position - positionAI;
         Vector2 vecInFrontOfEye2D = new Vector2(vecInFrontOfEye.x, vecInFrontOfEye.z);
 
         float angle = Vector2.Angle(vecInFrontOfEye2D, vecAiToPlayer2D);
@@ -549,7 +553,12 @@ public class NPC : MonoBehaviour
     {
         Vector3 positionAI = gameObject.transform.position;
         Vector2 positionAI2D = new Vector2(positionAI.x, positionAI.z);
-        Vector3 inFrontOfEye = transform.Find("FrontPoint").position;
+
+        GameObject frontPointGO;
+        if (DebugTool.tryFindGOChildren(gameObject, "FrontPoint", out frontPointGO, LogType.Warning) == false)
+            return;
+
+        Vector3 inFrontOfEye = frontPointGO.transform.position;
         Vector2 inFrontOfEye2D = new Vector2(inFrontOfEye.x, inFrontOfEye.z);
         Vector3 positionEye = new Vector3(positionAI.x, inFrontOfEye.y - 0.5f, positionAI.z);
 
