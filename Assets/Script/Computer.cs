@@ -25,7 +25,8 @@ public class Computer : MonoBehaviour
 
     [Header("Camera security")]
     [SerializeField]
-    private List<GameObject> m_camerasAttachedGO;
+    private List<GameObject> m_camerasAttachedGO = new List<GameObject>();
+    private List<Camera> m_cameraAttached = new List<Camera>();
     
 
 
@@ -51,8 +52,15 @@ public class Computer : MonoBehaviour
                 return false;
 
         if(m_cameraOS)
+        {
             if (DebugTool.tryFindGOChildren(gameObject, "Canvas_screen_cameraOS", out m_canvasGO, LogType.Error) == false)
                 return false;
+            if( initSecurityCameraOS() == false)
+                return false;
+        }
+            
+        
+            
 
         if (m_mailOS == false && m_cameraOS == false)
             Debug.LogWarning("Unknow OS to print");
@@ -152,7 +160,9 @@ public class Computer : MonoBehaviour
 
             if(m_cameraOS)
             {
-                GameObject.Find("Camera2").transform.Rotate(new Vector3(0.0f, 1.0f, 0.0f), 30);
+                if (initSecurityCameraOS() == false)
+                    return;
+                //GameObject.Find("Camera2").transform.Rotate(new Vector3(0.0f, 1.0f, 0.0f), 30);
             }
 
 
@@ -237,18 +247,63 @@ public class Computer : MonoBehaviour
         return true;
     }
 
-    private void updateSecurityCamera()
+    private bool initSecurityCameraOS()
     {
-        RenderTexture t = (RenderTexture)AssetDatabase.LoadAssetAtPath("Assets/Material/Other/camera_render_texture.renderTexture", typeof(RenderTexture));
-        //m_canvasGO.transform.Find("RawImage").GetComponent<RawImage>().texture = t;
+        if(m_camerasAttachedGO != null)
+        {
+            int indexCamera = 0;
+            foreach(GameObject cameraParentGO in m_camerasAttachedGO)
+            {
+
+                GameObject cameraGO;
+                if (DebugTool.tryFindGOChildren(cameraParentGO, "security_camera_Camera", out cameraGO, LogType.Error))
+                {
+                    if (cameraGO.TryGetComponent(out Camera securityCamera))
+                        m_cameraAttached.Add(securityCamera);
+                    else
+                    {
+                        Debug.LogError("Unable to find any Camera componement in " + cameraGO.name);
+                        return false;
+                    }
+                    
+
+                    RenderTexture cameraRenderTexture = new RenderTexture(240, 144, 16, RenderTextureFormat.ARGB32);
+                    cameraRenderTexture.Create();
+                    securityCamera.targetTexture = cameraRenderTexture;
+                    securityCamera.Render();
+
+                    GameObject rawImageGO = new GameObject();
+                    rawImageGO.transform.parent = m_canvasGO.transform;
+                    rawImageGO.name = "RawImage_securityCamera_n"+indexCamera.ToString();
+                    RectTransform rectTransform = rawImageGO.AddComponent<RectTransform>();
+                    rectTransform.Rotate(new Vector3(0.0f, 1.0f, 0.0f), -90);
+                    rectTransform.localPosition = Vector3.zero;
+
+                    rawImageGO.AddComponent<CanvasRenderer>();
+                    RawImage rawImage = rawImageGO.AddComponent<RawImage>();
+                    rawImage.texture = cameraRenderTexture;
+
+                    AspectRatioFitter aspectRatioFitter = rawImageGO.AddComponent<AspectRatioFitter>();
+                    aspectRatioFitter.aspectMode = AspectRatioFitter.AspectMode.EnvelopeParent;
+                    aspectRatioFitter.aspectRatio = 1.7f;
+
+                }
+                else
+                    return false;
+
+                indexCamera++;
+            }
+        }
+        return true;
     }
+
 
     private void Update()
     {
         //update the renderer texture if the player "can see" the screen
-        if (m_cameraOS)
+        /*if (m_cameraOS)
             if (Vector3.Distance(GameManager.Instance.getPlayerPosition(), gameObject.transform.position) < 10.0f)
-                updateSecurityCamera();
+                initSecurityCameraOS();*/
     }
 
     void printMailContentOnComputer(int index)
