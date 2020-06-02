@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Collections;
 using UnityEngine;
 using Random = UnityEngine.Random;
@@ -71,6 +72,7 @@ public class NPC : MonoBehaviour
     #region attributes_task
     [SerializeField]
     private bool m_stopClassicalSchedule = false;
+    private bool m_doorWasLock = false;
     #endregion
 
     #region getter
@@ -684,31 +686,25 @@ public class NPC : MonoBehaviour
             //if the door is lock
             else
             {
-                if (m_knowledge != null)
-                    foreach (Knowledge knowledge in m_knowledge)
-                        if (knowledge is Password)
-                        {
-                            Password password = (Password)knowledge;
-                            if (door.tryPassword(password.getPassword))
-                                if (door.tryToOpenOrCloseDoor())
-                                    StartCoroutine(waitDoorOpen(door));
-                        }
-                if (m_inventory != null)
-                    foreach (Pair<Items,bool> item in m_inventory)
-                        if (item.first is Key && item.second)
-                        {
-                            Key key = (Key)item.first;
-                            if (key.DoorAssociated == door)
-                                if (door.tryToOpenOrCloseDoor())
-                                    StartCoroutine(waitDoorOpen(door));
-                        }
+                m_doorWasLock = true;
+                StartCoroutine(waitUnlockDoor(door));
             }
+                
+
         }
     }
 
     public void tryToCloseTheDoor(Door door)
     {
+        
         door.tryToOpenOrCloseDoor();
+        //lock the door if she was lock before
+        door.IsLock = m_doorWasLock;
+
+        //reset the attributes m_doorWasLock
+        m_doorWasLock = false;
+        
+
     }
 
     private IEnumerator waitDoorOpen(Door door)
@@ -716,6 +712,66 @@ public class NPC : MonoBehaviour
         while (door.IsOpen == false)
             yield return new WaitForSeconds(0.1f);
         StopClassicalSchedule = false;
+    }
+
+    private IEnumerator waitUnlockDoor(Door door)
+    {
+        //check if the pnj know a password to open the digicode
+        if (m_knowledge != null && door.AssociatedDigicodeGO != null)
+        {
+            foreach (Knowledge knowledge in m_knowledge)
+            {
+                Password password = (Password)knowledge;
+                //if the password is associated to this door
+                if (password.ElementAssociated == door.gameObject)
+                {
+                    //we try the password
+                    bool isPasswordCorrect = door.tryPassword(password.getPassword);
+                    print("try password");
+                    int nbrOfCharToEnter = password.getPassword.Length;
+                    
+                    int i = 0;
+                    while (i < nbrOfCharToEnter)
+                    {
+                        
+
+                        print("have entered " + i.ToString() + " letter ");
+                        yield return new WaitForSeconds(1.0f);
+                        i++;
+                    }
+
+                    print("open the door");
+                    if(isPasswordCorrect)
+                    {
+                        if (door.tryToOpenOrCloseDoor())
+                            StartCoroutine(waitDoorOpen(door));
+                        yield break;
+                    }
+                        
+                }
+            }
+        }
+
+        //check in inventory, if the pnj has a key to open the door
+        if (m_inventory != null)
+        {
+            foreach (Pair<Items, bool> item in m_inventory)
+            {
+                //if the item is a key and is in his possesion
+                if (item.first is Key && item.second)
+                {
+                    Key key = (Key)item.first;
+                    if (key.DoorAssociated == door)
+                        if (door.tryToOpenOrCloseDoor())
+                        {
+                            StartCoroutine(waitDoorOpen(door));
+                            yield break;
+                        }
+                            
+                }
+            }
+        }
+
     }
 }
 

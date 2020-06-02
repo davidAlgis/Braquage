@@ -3,48 +3,82 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
+using UnityEditor;
+
 public class Door : MonoBehaviour
 {
-    // Start is called before the first frame update
+    /*The doors works with a system of front and back
+     * if the character who try to open them is front 
+     * to the door it'll use the front attributes, if 
+     * he's on the back then it'll use the back
+     * attributes.
+     */
+
+    [SerializeField]
+    private bool isFront = true;
+
     private float m_initialRotation;
     private float m_actualRotation;
-    [SerializeField]
-    private SlotTime[] m_lockSlotTimeVector;
-    [SerializeField]
     private bool m_isOpen = false;
-    [SerializeField]
-    private bool m_isLock;
     [SerializeField]
     private float m_rotation = 110;
 
-
-    #region attributes_digicode
-    [Header("Digicode")]
-
+    #region Front_Door
+    [Header("Front Door")]
     [SerializeField]
-    private GameObject m_associatedDigicodeGO;
+    private GameObject m_frontGO;
     [SerializeField]
-    private string m_password;
+    private bool m_isLockFront;
 
-    private Text m_textOnScreen;
+    //digicode Front Door
+    [SerializeField]
+    private GameObject m_associatedDigicodeGOFront;
+    [SerializeField]
+    private string m_passwordFront;
+    private Text m_textOnScreenFront;
+    #endregion
+
+
+    #region Back_Door
+    [Header("Back Door")]
+    [SerializeField]
+    private GameObject m_backGO;
+    
+    [SerializeField]
+    private bool m_isLockBack;
+
+    //Digicode Back Door
+    [SerializeField]
+    private GameObject m_associatedDigicodeGOBack;
+    [SerializeField]
+    private string m_passwordBack;
+    private Text m_textOnScreenBack;
+    #endregion
 
     public bool IsOpen { get => m_isOpen; set => m_isOpen = value; }
-    #endregion
+    public GameObject AssociatedDigicodeGO { get => m_associatedDigicodeGOFront; set => m_associatedDigicodeGOFront = value; }
+    public bool IsLock { get => m_isLockFront; set => m_isLockFront = value; }
+    public GameObject FrontGO { get => m_frontGO; set => m_frontGO = value; }
+    public GameObject BackGO { get => m_backGO; set => m_backGO = value; }
 
     private void Start()
     {
+        transform.gameObject.tag = "Door";
+
         //If there is a digicode associated
-        if (m_associatedDigicodeGO != null)
-        {
-            if (initDigicode() == false)
+        if (m_associatedDigicodeGOFront != null)
+            if (initDigicode(sideDoor.FRONT) == false)
             {
                 Debug.LogWarning("The Digicode couldn't be set properly, therefore the state of the door " + gameObject.name + " has been set to unlock.");
-                m_isLock = false;
+                m_isLockFront = false;
             }
 
-        }
-
-
+        if (m_associatedDigicodeGOBack != null)
+            if (initDigicode(sideDoor.BACK) == false)
+            {
+                Debug.LogWarning("The Digicode couldn't be set properly, therefore the state of the door " + gameObject.name + " has been set to unlock.");
+                m_isLockFront = false;
+            }
 
         //create the box collider, one for colision and one for trigger
         BoxCollider boxCol = gameObject.GetComponent(typeof(BoxCollider)) as BoxCollider;
@@ -58,14 +92,39 @@ public class Door : MonoBehaviour
         }
 
         m_initialRotation = transform.localRotation.eulerAngles.z;
+
+        //add front and back GO
+        if(DebugTool.tryFindGOChildren(gameObject,"back_"+gameObject.name,out m_backGO) == false)
+        {
+            m_backGO = new GameObject();
+            m_backGO.name = "back_" + gameObject.name;
+            m_backGO.transform.parent = gameObject.transform;
+            m_backGO.transform.localPosition = new Vector3(0.0f, -1.0f, 0.0f);
+        }
+
+        if (DebugTool.tryFindGOChildren(gameObject, "front_" + gameObject.name, out m_frontGO) == false)
+        {
+            m_frontGO = new GameObject();
+            m_frontGO.name = "front_" + gameObject.name;
+            m_frontGO.transform.parent = gameObject.transform;
+            m_frontGO.transform.localPosition = new Vector3(0.0f, 1.0f, 0.0f);
+        }
+        
+
     }
 
-    private void Update()
-    {
-        m_isLock = isDoorLock();
-    }
     private void OnTriggerEnter(Collider character)
     {
+        float distanceCharacterFront = Vector3.Distance(character.transform.position, m_frontGO.transform.position);
+        float distanceCharacterBack = Vector3.Distance(character.transform.position, m_backGO.transform.position);
+
+        //the character is on the front of the door
+        if (distanceCharacterFront <= distanceCharacterBack)
+            isFront = true;
+        //the character is on the back of the door
+        else
+            isFront = false; 
+
         if (character.tag == "NPC")
             if (m_isOpen == false)
                 character.GetComponent<NPC>().tryToOpenTheDoor(this);
@@ -76,6 +135,16 @@ public class Door : MonoBehaviour
 
     private void OnTriggerStay(Collider character)
     {
+        //Todo: is this redundant
+        float distanceCharacterFront = Vector3.Distance(character.transform.position, m_frontGO.transform.position);
+        float distanceCharacterBack = Vector3.Distance(character.transform.position, m_backGO.transform.position);
+
+        //the character is on the front of the door
+        if (distanceCharacterFront <= distanceCharacterBack)
+            isFront = true;
+        //the character is on the back of the door
+        else
+            isFront = false;
 
         if (character.tag == "Player")
         {
@@ -99,17 +168,35 @@ public class Door : MonoBehaviour
 
     public bool tryToOpenOrCloseDoor()
     {
-        if (m_isLock)
-            return false;
-                //UIManager.Instance.enableMessageBox("La porte est fermée à clé.");
+        if (isFront)
+        {
+            if (m_isLockFront)
+                return false;
+            //UIManager.Instance.enableMessageBox("La porte est fermée à clé.");
+            else
+            {
+                m_actualRotation = transform.localRotation.eulerAngles.z;
+                if (m_isOpen)
+                    StartCoroutine(rotateTo(m_initialRotation));
+                else
+                    StartCoroutine(rotateTo(m_rotation));
+                return true;
+            }
+        }
         else
         {
-            m_actualRotation = transform.localRotation.eulerAngles.z;
-            if (m_isOpen)
-                StartCoroutine(rotateTo(m_initialRotation));
+            if (m_isLockBack)
+                return false;
+            //UIManager.Instance.enableMessageBox("La porte est fermée à clé.");
             else
-                StartCoroutine(rotateTo(m_rotation));
-            return true;
+            {
+                m_actualRotation = transform.localRotation.eulerAngles.z;
+                if (m_isOpen)
+                    StartCoroutine(rotateTo(m_initialRotation));
+                else
+                    StartCoroutine(rotateTo(m_rotation));
+                return true;
+            }
         }
     }
 
@@ -169,122 +256,244 @@ public class Door : MonoBehaviour
         }
     }
 
-    public bool isDoorLock()
-    {
-        if (m_lockSlotTimeVector != null)
-        {
-            foreach (SlotTime slot in m_lockSlotTimeVector)
-            {
-                slot.to.DayG = GameManager.Instance.CurrentTimeInGame.DayG;
-                slot.from.DayG = GameManager.Instance.CurrentTimeInGame.DayG;
-
-                if (GameManager.Instance.CurrentTimeInGame > slot.from && GameManager.Instance.CurrentTimeInGame < slot.to)
-                    return true;
-            }
-        }
-        return m_isLock;
-    }
 
     #region digicode
-    public bool initDigicode()
+
+    //init the front and the back digicode
+    public bool initDigicode(sideDoor side)
     {
-        //init m_textComponement
-        GameObject textOnScreenGO;
-
-        if (DebugTool.tryFindGOChildren(m_associatedDigicodeGO, "Canvas_screen_digicode/TextDigicode", out textOnScreenGO, LogType.Error) == false)
-            return false;
-
-        if (textOnScreenGO.TryGetComponent(out Text textTemp))
-            m_textOnScreen = textTemp;
-        else
+        if(side == sideDoor.FRONT)
         {
-            Debug.LogError("unable to find any text componement in " + textOnScreenGO.name);
-            return false;
-        }
+            //init m_textcomponent
+            GameObject textOnScreenGOFront;
 
-        List<Button> buttonsDigicode = new List<Button>();
-        for (int i = 0; i < 10; i++)
-        {
-            string buttonName = "Canvas_screen_digicode/Button_digi_" + i.ToString();
-
-            GameObject buttonGO;
-            if (DebugTool.tryFindGOChildren(m_associatedDigicodeGO, buttonName, out buttonGO, LogType.Error) == false)
+            if (DebugTool.tryFindGOChildren(m_associatedDigicodeGOFront, "Canvas_screen_digicode/TextDigicode", out textOnScreenGOFront, LogType.Error) == false)
                 return false;
 
-            if (buttonGO.TryGetComponent(out Button buttonToAdd))
-                buttonsDigicode.Add(buttonToAdd);
+            if (textOnScreenGOFront.TryGetComponent(out Text textTempFront))
+                m_textOnScreenFront = textTempFront;
             else
             {
-                Debug.LogError("unable to find any text componement in " + buttonGO.name);
+                Debug.LogError("unable to find any text component in " + textOnScreenGOFront.name);
                 return false;
             }
 
-            string tempStrToLambda = i.ToString();
-            //when we use lambda function we need to use a temporary variable in the loop because of https://stackoverflow.com/questions/271440/captured-variable-in-a-loop-in-c-sharp
-            //https://csharpindepth.com/Articles/Closures
-            (buttonsDigicode[i]).onClick.AddListener(delegate () { this.printStringOnScreen(tempStrToLambda); });
+            List<Button> buttonsDigicodeFront = new List<Button>();
+            for (int i = 0; i < 10; i++)
+            {
+                string buttonName = "Canvas_screen_digicode/Button_digi_" + i.ToString();
+
+                GameObject buttonGOFront;
+                if (DebugTool.tryFindGOChildren(m_associatedDigicodeGOFront, buttonName, out buttonGOFront, LogType.Error) == false)
+                    return false;
+
+                if (buttonGOFront.TryGetComponent(out Button buttonToAddFront))
+                    buttonsDigicodeFront.Add(buttonToAddFront);
+                else
+                {
+                    Debug.LogError("unable to find any text component in " + buttonGOFront.name);
+                    return false;
+                }
+                sideDoor tempSideDoor = sideDoor.FRONT;
+                string tempStrToLambdaFront = i.ToString();
+                //when we use lambda function we need to use a temporary variable in the loop because of https://stackoverflow.com/questions/271440/captured-variable-in-a-loop-in-c-sharp
+                //https://csharpindepth.com/Articles/Closures
+                (buttonsDigicodeFront[i]).onClick.AddListener(delegate () { this.printStringOnScreen(tempStrToLambdaFront, tempSideDoor); });
+            }
+
+
+            GameObject buttonReturnGOFront;
+            if (DebugTool.tryFindGOChildren(m_associatedDigicodeGOFront, "Canvas_screen_digicode/Button_digi_return", out buttonReturnGOFront, LogType.Error) == false)
+                return false;
+
+            if (buttonReturnGOFront.TryGetComponent(out Button buttonReturnFront))
+            {
+                sideDoor tempSideDoor = sideDoor.FRONT; 
+                buttonReturnFront.onClick.AddListener(delegate () { this.deleteCharacterOnScreen(tempSideDoor); });
+
+            }
+            else
+            {
+                Debug.LogError("unable to find any text component in " + buttonReturnGOFront.name);
+                return false;
+            }
+            return true;
         }
-
-
-        GameObject buttonReturnGO;
-        if(DebugTool.tryFindGOChildren(m_associatedDigicodeGO, "Canvas_screen_digicode/Button_digi_return",out buttonReturnGO, LogType.Error) == false)
-            return false;
-
-        if (buttonReturnGO.TryGetComponent(out Button buttonReturn))
-            buttonReturn.onClick.AddListener(delegate () { this.deleteCharacterOnScreen(); });
         else
         {
-            Debug.LogError("unable to find any text componement in " + buttonReturnGO.name);
-            return false;
+            GameObject textOnScreenGOBack;
+
+            if (DebugTool.tryFindGOChildren(m_associatedDigicodeGOBack, "Canvas_screen_digicode/TextDigicode", out textOnScreenGOBack, LogType.Error) == false)
+                return false;
+
+            if (textOnScreenGOBack.TryGetComponent(out Text textTempBack))
+                m_textOnScreenBack = textTempBack;
+            else
+            {
+                Debug.LogError("unable to find any text component in " + textOnScreenGOBack.name);
+                return false;
+            }
+
+            List<Button> buttonsDigicodeBack = new List<Button>();
+            for (int i = 0; i < 10; i++)
+            {
+                string buttonName = "Canvas_screen_digicode/Button_digi_" + i.ToString();
+
+                GameObject buttonGOBack;
+                if (DebugTool.tryFindGOChildren(m_associatedDigicodeGOBack, buttonName, out buttonGOBack, LogType.Error) == false)
+                    return false;
+
+                if (buttonGOBack.TryGetComponent(out Button buttonToAddBack))
+                    buttonsDigicodeBack.Add(buttonToAddBack);
+                else
+                {
+                    Debug.LogError("unable to find any text component in " + buttonGOBack.name);
+                    return false;
+                }
+                string tempStrToLambdaBack = i.ToString();
+                sideDoor tempSideDoor = sideDoor.BACK;
+                //when we use lambda function we need to use a temporary variable in the loop because of https://stackoverflow.com/questions/271440/captured-variable-in-a-loop-in-c-sharp
+                //https://csharpindepth.com/Articles/Closures
+                (buttonsDigicodeBack[i]).onClick.AddListener(delegate () { this.printStringOnScreen(tempStrToLambdaBack, tempSideDoor); });
+            }
+
+
+            GameObject buttonReturnGOBack;
+            if (DebugTool.tryFindGOChildren(m_associatedDigicodeGOBack, "Canvas_screen_digicode/Button_digi_return", out buttonReturnGOBack, LogType.Error) == false)
+                return false;
+
+            if (buttonReturnGOBack.TryGetComponent(out Button buttonReturnBack))
+            {
+                sideDoor tempSideDoor = sideDoor.BACK;
+                buttonReturnBack.onClick.AddListener(delegate () { this.deleteCharacterOnScreen(tempSideDoor); });
+
+            }
+            else
+            {
+                Debug.LogError("unable to find any text component in " + buttonReturnGOBack.name);
+                return false;
+            }
+            return true;
         }
-        return true;
     }
 
-    public void deleteCharacterOnScreen()
+    public void deleteCharacterOnScreen(sideDoor side)
     {
-        if(m_textOnScreen.text.Length > 0)
-            m_textOnScreen.text = m_textOnScreen.text.Substring(0, m_textOnScreen.text.Length - 1);
+        if(side == sideDoor.FRONT)
+            if (m_textOnScreenFront.text.Length > 0)
+                m_textOnScreenFront.text = m_textOnScreenFront.text.Substring(0, m_textOnScreenFront.text.Length - 1);
+        else
+            if (m_textOnScreenBack.text.Length > 0)
+                m_textOnScreenBack.text = m_textOnScreenBack.text.Substring(0, m_textOnScreenBack.text.Length - 1);
         
     }
 
-    public void printStringOnScreen(string strToPrint)
+    public void printStringOnScreen(string strToPrint, sideDoor side)
     {
-        if (m_textOnScreen.text.Length + strToPrint.Length <= m_password.Length)
-            m_textOnScreen.text += strToPrint;
-        else
-            m_textOnScreen.text = "";
-        if (isPasswordCorrect(m_textOnScreen.text))
+        if(side == sideDoor.FRONT)
         {
-            m_isLock = false;
-            m_textOnScreen.text = "";
+            if (m_textOnScreenFront.text.Length + strToPrint.Length < m_passwordFront.Length)
+                m_textOnScreenFront.text += strToPrint;
+            else
+            {
+                m_textOnScreenFront.text += strToPrint;
+                StartCoroutine(waitForEraseDisplay(1.0f));
+            }
+
+
+            if (isPasswordCorrect(m_textOnScreenFront.text))
+                StartCoroutine(waitForEraseDisplay(1.0f));
         }
+        else
+        {
             
+            if (m_textOnScreenBack.text.Length + strToPrint.Length < m_passwordBack.Length)
+                m_textOnScreenBack.text += strToPrint;
+            else
+            {
+                m_textOnScreenBack.text += strToPrint;
+                StartCoroutine(waitForEraseDisplay(1.0f));
+            }
+
+
+            if (isPasswordCorrect(m_textOnScreenBack.text))
+                StartCoroutine(waitForEraseDisplay(1.0f));
+        }
+
 
     }
 
     public bool tryPassword(string passwordToTest)
     {
+        StartCoroutine(tryPasswordCoroutine(passwordToTest));
         if (isPasswordCorrect(passwordToTest))
         {
-            m_isLock = false;
+            //m_isLock = false;
             return true;
         }
         else
             return false;
     }
 
+    public IEnumerator tryPasswordCoroutine(string passwordToTest)
+    {
+        int nbrOfCharToEnter = passwordToTest.Length;
+        for (int i = 0; i < nbrOfCharToEnter; i++)
+        {
+            print(passwordToTest);
+            print(i.ToString() + " + " + passwordToTest[i].ToString());
+            printStringOnScreen(passwordToTest[i].ToString(), sideDoor.FRONT);
+            yield return new WaitForSeconds(1.0f);
+        }
+        if (isPasswordCorrect(passwordToTest))
+            m_isLockFront = false;
+        
+
+    }
+
+    public IEnumerator waitForEraseDisplay(float delay)
+    {
+        if (isPasswordCorrect(m_textOnScreenFront.text))
+            m_isLockFront = false;
+
+        yield return new WaitForSeconds(delay);
+
+        m_textOnScreenFront.text = "";
+    }
+
     public bool isPasswordCorrect(string passwordToTest)
     {
-        return passwordToTest == m_password;
+        return passwordToTest == m_passwordFront;
     }
     #endregion
 
+    //generate Gizmos for back and front of the door 
+    void OnDrawGizmosSelected()
+    {
+
+#if UNITY_EDITOR
+        Gizmos.color = Color.red;
+        if(m_frontGO != null)
+        {
+            Gizmos.DrawSphere(m_frontGO.transform.position, 0.05f);
+            Handles.Label(m_frontGO.transform.position, "Front");
+        }
+            
+        Gizmos.color = Color.blue;
+        if(m_backGO != null)
+        {
+            Gizmos.DrawSphere(m_backGO.transform.position, 0.05f);
+            Handles.Label(m_backGO.transform.position, "Back");
+        }
+            
+#endif
+    }
+
+    
 }
 
-//I don't use struct, because we don't see it in inspector then.
-[System.Serializable]
-public class SlotTime
+public enum sideDoor
 {
-    public TimeInGame from;
-    public TimeInGame to;
+   FRONT,
+   BACK
 }

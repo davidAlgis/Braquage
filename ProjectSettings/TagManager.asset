@@ -8,6 +8,7 @@ TagManager:
   - NPC
   - WorldCanvas
   - SecurityCamera
+  - Door
   layers:
   - Default
   - TransparentFX

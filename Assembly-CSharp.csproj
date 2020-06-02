@@ -69,6 +69,7 @@
     <Compile Include="Assets\Script\DebugTool.cs" />
     <Compile Include="Assets\Script\DoNotDestroyOnLoad.cs" />
     <Compile Include="Assets\Script\Door.cs" />
+    <Compile Include="Assets\Script\EditModeFunctions.cs" />
     <Compile Include="Assets\Script\EnterViewFieldAI.cs" />
     <Compile Include="Assets\Script\Event.cs" />
     <Compile Include="Assets\Script\FirstPersonAIO.cs" />

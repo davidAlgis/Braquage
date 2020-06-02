@@ -1,14 +1,15 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEditor;
 using System;
 
 public static class DebugTool
 {
     //TODO: to replace by Debug.LogError 
-    public static bool printError(string message,string gameObjectName="",string componementName="")
+    public static bool printError(string message,string gameObjectName="",string componentName="")
     {
-        Debug.Log("Error - " +componementName + "/" + gameObjectName + " - " + message);
+        Debug.Log("Error - " +componentName + "/" + gameObjectName + " - " + message);
         return false;
     }
 
@@ -45,6 +46,9 @@ public static class DebugTool
         return true;
     }
 
-
+    public static void addGizmosText(Vector3 positionToAdd, string textToAdd)
+    {
+        
+    }
 }
 

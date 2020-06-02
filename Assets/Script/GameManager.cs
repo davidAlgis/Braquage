@@ -19,6 +19,7 @@ public class GameManager : MonoBehaviour
     private float m_durationOfDay = 48f; 
     //current Time. The 'G' at the end is for time in game
     private float m_currentTimeFloat = 0;
+    private Date m_originDate;
     //current Hours. The 'G' at the end is for time in game
     [SerializeField]
     private TimeInGame m_timeToBegin = new TimeInGame { };
@@ -61,6 +62,7 @@ public class GameManager : MonoBehaviour
     }
     public int Money { get => m_money; set => m_money = value; }
     public bool DebugIsEnabled { get => debugIsEnabled; set => debugIsEnabled = value; }
+    public Date OriginDate { get => m_originDate; set => m_originDate = value; }
     #endregion
 
 
@@ -68,8 +70,10 @@ public class GameManager : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        //m_currentTimeInGame.DayG += m_timeToBegin.DayG;
+        m_originDate = new Date(1, enumMonth.JAN, 2020);
+        m_originDate += m_timeToBegin.DayG;
         m_currentTimeInGame.DayG += m_timeToBegin.DayG;
-
         //Cursor.visible = false;
     }
 
@@ -92,7 +96,7 @@ public class GameManager : MonoBehaviour
             player.playerCanMove = enable;
         }
         else
-            Debug.LogWarning("Unable to find the script FirstPersonAIO componement in Player");
+            Debug.LogWarning("Unable to find the script FirstPersonAIO component in Player");
         
 
         return getActualCamera().transform;

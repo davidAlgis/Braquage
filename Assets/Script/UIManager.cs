@@ -37,7 +37,7 @@ public class UIManager : MonoBehaviour
             return;
 
         if (buttonDisableMessageGO.TryGetComponent(out Button buttonDisable) == false)
-            Debug.LogError("Unable to find any Button componement in " + buttonDisableMessageGO.name);
+            Debug.LogError("Unable to find any Button component in " + buttonDisableMessageGO.name);
         
         buttonDisable.onClick.AddListener(delegate () { this.disableMessageBox(); });
         m_messageBoxPanel.SetActive(false);
@@ -60,7 +60,7 @@ public class UIManager : MonoBehaviour
                     if (canvasWorld.TryGetComponent(out GraphicRaycaster graphicRaycaster))
                         clickOnButton(graphicRaycaster);
                     else
-                        Debug.LogWarning("Unable to find GraphicRaycaster componement in " + canvasWorld.name);
+                        Debug.LogWarning("Unable to find GraphicRaycaster component in " + canvasWorld.name);
                 }
                     
             }
@@ -90,7 +90,7 @@ public class UIManager : MonoBehaviour
             if (pressKeyGO.TryGetComponent(out Image imagePressKey))
                 imagePressKey.enabled = enabled;
             else
-                Debug.LogError("Unable to find any Image componement in " + pressKeyGO.name);
+                Debug.LogError("Unable to find any Image component in " + pressKeyGO.name);
         }
 
         if (DebugTool.tryFindGOChildren(pressKeyGO, "TextKey", out textKeyGO, LogType.Error))
@@ -101,7 +101,7 @@ public class UIManager : MonoBehaviour
                 textPressKey.text = key;
             }
             else
-                Debug.LogError("Unable to find any Text componement in " + textKeyGO.name);
+                Debug.LogError("Unable to find any Text component in " + textKeyGO.name);
 
             
         }
@@ -120,7 +120,7 @@ public class UIManager : MonoBehaviour
                 if(buttonDisableMessageGO.TryGetComponent(out Button buttonDisableMessage))
                     buttonDisableMessage.onClick.AddListener(delegate () { this.disableMessageBox(); });
                 else
-                    Debug.LogError("Unable to find any Button componement in " + buttonDisableMessageGO.name);
+                    Debug.LogError("Unable to find any Button component in " + buttonDisableMessageGO.name);
             }
 
             if (DebugTool.tryFindGOChildren(messageBoxGO, "MessageText", out messageTextGO, LogType.Error))
@@ -128,7 +128,7 @@ public class UIManager : MonoBehaviour
                 if (messageTextGO.TryGetComponent(out Text messageText))
                     messageText.text = message;
                 else
-                    Debug.LogError("Unable to find any Text componement in " + messageTextGO.name);
+                    Debug.LogError("Unable to find any Text component in " + messageTextGO.name);
             }
         }
     }
@@ -146,7 +146,7 @@ public class UIManager : MonoBehaviour
             if (textMoneyGO.TryGetComponent(out Text textMoney))
                 textMoney.text = GameManager.Instance.Money.ToString() + " €";
             else
-                Debug.LogError("Unable to find any Text componement in " + textMoneyGO.name);
+                Debug.LogError("Unable to find any Text component in " + textMoneyGO.name);
         }
     }
 
@@ -158,7 +158,7 @@ public class UIManager : MonoBehaviour
             if (gameOverGO.TryGetComponent(out Text gameOverText))
                 gameOverText.text = GameManager.Instance.Money.ToString() + " €";
             else
-                Debug.LogError("Unable to find any Text componement in " + gameOverGO.name);
+                Debug.LogError("Unable to find any Text component in " + gameOverGO.name);
         }
     }
 
