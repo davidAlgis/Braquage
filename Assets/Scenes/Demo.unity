@@ -6477,7 +6477,7 @@ MonoBehaviour:
   m_backGO: {fileID: 690137539}
   m_isLockBack: 1
   m_associatedDigicodeGOBack: {fileID: 20787021}
-  m_passwordBack: 1234
+  m_passwordBack: 1864
 --- !u!65 &956550124
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -6621,7 +6621,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1002806159}
   m_Layer: 0
-  m_Name: GameObject
+  m_Name: route
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

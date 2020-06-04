@@ -511,7 +511,11 @@ public class NPC : MonoBehaviour
             m_actionIsDown = true;
         }
         else
+        {
+            print("ok i'm walking");
             GetComponent<Animator>().SetBool("IsWalking", true);
+        }
+            
         
         if(m_stopClassicalSchedule == false)
             m_agent.destination = goal.position;
@@ -617,7 +621,7 @@ public class NPC : MonoBehaviour
         switch (actionToExecute)
         {
             case enumAction.WALK:
-                //print("I'm walking");
+                print("I'm walking");
                 walk(goal);
                 break;
             case enumAction.WATCH:
@@ -716,9 +720,13 @@ public class NPC : MonoBehaviour
 
     private IEnumerator waitUnlockDoor(Door door)
     {
+        bool isFrontAndHaveDigicodeOnFront = door.IsFront && door.AssociatedDigicodeGOFront != null;
+        bool isBackAndHaveDigicodeOnBack = door.IsFront == false && door.AssociatedDigicodeGOBack != null;
+
         //check if the pnj know a password to open the digicode
-        if (m_knowledge != null && door.AssociatedDigicodeGO != null)
+        if (m_knowledge != null && (isFrontAndHaveDigicodeOnFront || isBackAndHaveDigicodeOnBack))
         {
+
             foreach (Knowledge knowledge in m_knowledge)
             {
                 Password password = (Password)knowledge;
@@ -727,20 +735,16 @@ public class NPC : MonoBehaviour
                 {
                     //we try the password
                     bool isPasswordCorrect = door.tryPassword(password.getPassword);
-                    print("try password");
                     int nbrOfCharToEnter = password.getPassword.Length;
                     
                     int i = 0;
                     while (i < nbrOfCharToEnter)
                     {
-                        
 
-                        print("have entered " + i.ToString() + " letter ");
                         yield return new WaitForSeconds(1.0f);
                         i++;
                     }
 
-                    print("open the door");
                     if(isPasswordCorrect)
                     {
                         if (door.tryToOpenOrCloseDoor())

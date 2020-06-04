@@ -29,6 +29,7 @@ public class Door : MonoBehaviour
     private GameObject m_frontGO;
     [SerializeField]
     private bool m_isLockFront;
+    private bool m_initStateLockFront;
 
     //digicode Front Door
     [SerializeField]
@@ -46,6 +47,7 @@ public class Door : MonoBehaviour
     
     [SerializeField]
     private bool m_isLockBack;
+    private bool m_initStateLockBack;
 
     //Digicode Back Door
     [SerializeField]
@@ -56,14 +58,22 @@ public class Door : MonoBehaviour
     #endregion
 
     public bool IsOpen { get => m_isOpen; set => m_isOpen = value; }
-    public GameObject AssociatedDigicodeGO { get => m_associatedDigicodeGOFront; set => m_associatedDigicodeGOFront = value; }
+    public GameObject AssociatedDigicodeGOFront { get => m_associatedDigicodeGOFront; set => m_associatedDigicodeGOFront = value; }
     public bool IsLock { get => m_isLockFront; set => m_isLockFront = value; }
     public GameObject FrontGO { get => m_frontGO; set => m_frontGO = value; }
     public GameObject BackGO { get => m_backGO; set => m_backGO = value; }
+    public GameObject AssociatedDigicodeGOBack { get => m_associatedDigicodeGOBack; set => m_associatedDigicodeGOBack = value; }
+    public bool IsFront { get => isFront; set => isFront = value; }
 
     private void Start()
     {
-        transform.gameObject.tag = "Door";
+
+        /*define init lock state, which will be use 
+         * once the door has been closed. To lock the 
+         * in his initial state. */
+
+        m_initStateLockFront = m_isLockFront;
+        m_initStateLockBack = m_isLockBack;
 
         //If there is a digicode associated
         if (m_associatedDigicodeGOFront != null)
@@ -168,36 +178,51 @@ public class Door : MonoBehaviour
 
     public bool tryToOpenOrCloseDoor()
     {
+        //define the actual rotation which will be used in rotateTo
+        m_actualRotation = transform.localRotation.eulerAngles.z;
         if (isFront)
         {
-            if (m_isLockFront)
-                return false;
-            //UIManager.Instance.enableMessageBox("La porte est fermée à clé.");
+            //if door is open, then try to close it
+            if (m_isOpen)
+            {
+                StartCoroutine(rotateTo(m_initialRotation));
+                //reset the lock state
+                m_isLockFront = m_initStateLockFront;
+            }
             else
             {
-                m_actualRotation = transform.localRotation.eulerAngles.z;
-                if (m_isOpen)
-                    StartCoroutine(rotateTo(m_initialRotation));
+                //if door is locked return false
+                if (m_isLockFront)
+                {
+                    return false;
+                    //UIManager.Instance.enableMessageBox("La porte est fermée à clé.");
+                }
                 else
                     StartCoroutine(rotateTo(m_rotation));
-                return true;
             }
         }
         else
         {
-            if (m_isLockBack)
-                return false;
-            //UIManager.Instance.enableMessageBox("La porte est fermée à clé.");
+            //if door is open, then try to close it
+            if (m_isOpen)
+            {
+                StartCoroutine(rotateTo(m_initialRotation));
+                //reset the lock state
+                m_isLockBack = m_initStateLockBack;
+            }
             else
             {
-                m_actualRotation = transform.localRotation.eulerAngles.z;
-                if (m_isOpen)
-                    StartCoroutine(rotateTo(m_initialRotation));
+                //if door is locked return false
+                if (m_isLockBack)
+                {
+                    return false;
+                    //UIManager.Instance.enableMessageBox("La porte est fermée à clé.");
+                }
                 else
                     StartCoroutine(rotateTo(m_rotation));
-                return true;
             }
         }
+        return true;
     }
 
     IEnumerator rotateTo(float breakRotation)
@@ -397,12 +422,12 @@ public class Door : MonoBehaviour
             else
             {
                 m_textOnScreenFront.text += strToPrint;
-                StartCoroutine(waitForEraseDisplay(1.0f));
+                StartCoroutine(waitForEraseDisplay(1.0f, side));
             }
 
 
-            if (isPasswordCorrect(m_textOnScreenFront.text))
-                StartCoroutine(waitForEraseDisplay(1.0f));
+            if (isPasswordCorrect(m_textOnScreenFront.text, side))
+                StartCoroutine(waitForEraseDisplay(1.0f, side));
         }
         else
         {
@@ -412,12 +437,12 @@ public class Door : MonoBehaviour
             else
             {
                 m_textOnScreenBack.text += strToPrint;
-                StartCoroutine(waitForEraseDisplay(1.0f));
+                StartCoroutine(waitForEraseDisplay(1.0f, side));
             }
 
 
-            if (isPasswordCorrect(m_textOnScreenBack.text))
-                StartCoroutine(waitForEraseDisplay(1.0f));
+            if (isPasswordCorrect(m_textOnScreenBack.text, side))
+                StartCoroutine(waitForEraseDisplay(1.0f, side));
         }
 
 
@@ -425,8 +450,14 @@ public class Door : MonoBehaviour
 
     public bool tryPassword(string passwordToTest)
     {
-        StartCoroutine(tryPasswordCoroutine(passwordToTest));
-        if (isPasswordCorrect(passwordToTest))
+        sideDoor side;
+        if (isFront)
+            side = sideDoor.FRONT;
+        else
+            side = sideDoor.BACK;
+
+        StartCoroutine(tryPasswordCoroutine(passwordToTest, side));
+        if (isPasswordCorrect(passwordToTest, side))
         {
             //m_isLock = false;
             return true;
@@ -435,35 +466,52 @@ public class Door : MonoBehaviour
             return false;
     }
 
-    public IEnumerator tryPasswordCoroutine(string passwordToTest)
+    public IEnumerator tryPasswordCoroutine(string passwordToTest, sideDoor side)
     {
         int nbrOfCharToEnter = passwordToTest.Length;
         for (int i = 0; i < nbrOfCharToEnter; i++)
         {
-            print(passwordToTest);
-            print(i.ToString() + " + " + passwordToTest[i].ToString());
-            printStringOnScreen(passwordToTest[i].ToString(), sideDoor.FRONT);
+            printStringOnScreen(passwordToTest[i].ToString(), side);
             yield return new WaitForSeconds(1.0f);
         }
-        if (isPasswordCorrect(passwordToTest))
-            m_isLockFront = false;
-        
-
+        if (isPasswordCorrect(passwordToTest, side))
+        {
+            if (side == sideDoor.FRONT)
+                m_isLockFront = false;
+            else
+                m_isLockBack = false;
+        }
     }
 
-    public IEnumerator waitForEraseDisplay(float delay)
+    public IEnumerator waitForEraseDisplay(float delay, sideDoor side)
     {
-        if (isPasswordCorrect(m_textOnScreenFront.text))
-            m_isLockFront = false;
+        if (side == sideDoor.FRONT)
+        {
+            if (isPasswordCorrect(m_textOnScreenFront.text, side))
+                m_isLockFront = false;
 
-        yield return new WaitForSeconds(delay);
+            yield return new WaitForSeconds(delay);
 
-        m_textOnScreenFront.text = "";
+            m_textOnScreenFront.text = "";
+        }
+        else
+        {
+            if (isPasswordCorrect(m_textOnScreenBack.text, side))
+                m_isLockBack = false;
+
+            yield return new WaitForSeconds(delay);
+
+            m_textOnScreenBack.text = "";
+        }
     }
 
-    public bool isPasswordCorrect(string passwordToTest)
+    public bool isPasswordCorrect(string passwordToTest, sideDoor side)
     {
-        return passwordToTest == m_passwordFront;
+        if(side == sideDoor.FRONT)
+            return passwordToTest == m_passwordFront;
+        else
+            return passwordToTest == m_passwordBack;
+
     }
     #endregion
 
